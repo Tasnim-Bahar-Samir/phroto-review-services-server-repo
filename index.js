@@ -1,6 +1,7 @@
 const express =require('express')
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require("jsonwebtoken")
 require('dotenv').config()
 const app = express()
 
@@ -11,12 +12,31 @@ app.use(cors())
 app.use(express.json())
 
 
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.skbfv9j.mongodb.net/?retryWrites=true&w=majority`;
 console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+
+async function jwtVerify(req,res,next){
+    const token = req.header('authorization')
+    if(!token){
+        return res.status(401).send({message: 'Unathorized User'})
+    }
+    try{
+        const user = jwt.verify(token,process.env.SECRETE_TOKEN)
+        req.user = user;
+        next()
+    }
+    catch{
+        return res.status(403).send({message:"Invalid User"})
+    }
+}
+
+
 async function run(){
     const servicesCollection = client.db('photograpyDb').collection('services')
+    const reviewCollection = client.db('photograpyDb').collection('reviews')
     
     try{
         app.get('/services', async(req,res)=>{
@@ -58,6 +78,16 @@ async function run(){
                 message:"Failed To Add"
             })
            }
+        })
+
+        app.get()
+
+        app.post('/login',async(req,res)=>{
+            const user = req.body;
+            const token = jwt.sign(user, process.env.SECRETE_TOKEN);
+            res.send({
+                token:token
+            })
         })
     }catch(e){
         console.log(e.message,e.name)
