@@ -36,7 +36,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run(){
     const servicesCollection = client.db('photograpyDb').collection('services')
-    // const reviewCollection = client.db('photograpyDb').collection('reviews')
+    const reviewCollection = client.db('photograpyDb').collection('reviews')
     
     try{
         app.get('/services', async(req,res)=>{
@@ -64,6 +64,8 @@ async function run(){
                 data: result
             })
         })
+
+        
         app.post('/services', async(req,res)=>{
             const {name,details} = req.body;
             const result = await servicesCollection.insertOne({name,details})
@@ -75,11 +77,26 @@ async function run(){
            }else{
             res.send({
                 success:false,
-                message:"Failed To Add"
+                error:"Failed To Add"
             })
            }
         })
 
+        app.post('/reviews',async(req,res)=>{
+            const data = req.body;
+            const result = await reviewCollection.insertOne(data)
+            if(result.insertedId){
+                res.send({
+                    success:true,
+                    message:'Review added successfully'
+                })
+            }else{
+                res.send({
+                    success:false,
+                    error:"Failed to add review"
+                })
+            }
+        })
 
         app.post('/login',async (req,res)=>{
             const user = req.body;
