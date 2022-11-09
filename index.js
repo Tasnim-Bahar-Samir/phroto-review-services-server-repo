@@ -120,6 +120,24 @@ async function run(){
             }
         })
 
+        app.delete('/myReviews/:id', async(req,res) =>{
+            const {id} = req.params; 
+            const query = {_id : ObjectId(id)}
+            const result = await reviewCollection.deleteOne(query)
+
+            if(result.deletedCount){
+                res.send({
+                    success:true,
+                    message:"Deleted the review"
+                })
+            }else{
+                res.send({
+                    success:false,
+                    error:"Failed to delete"
+                })
+            }
+        })
+
         app.post('/login',async (req,res)=>{
             const user = req.body;
             const token = jwt.sign(user, process.env.SECRETE_TOKEN);
