@@ -66,9 +66,23 @@ async function run(){
         })
 
         app.get('/reviews',async(req,res)=>{
-            const query = {serviceId: req.query.id}
+            let query = {}
+            if(req.query.id){
+              query = {serviceId: req.query.id}
+            }
             const cursor = reviewCollection.find(query);
-            const result = await cursor.toArray()
+            const result = await cursor.sort({datefield: -1}).toArray()
+
+            res.send({
+                success:true,
+                data: result
+            })
+        })
+
+        app.get('/reviews/:id',async(req,res)=>{
+            const {id}= req.params;
+            const query = {_id: ObjectId(id)}
+            const result = await reviewCollection.findOne(query);
 
             res.send({
                 success:true,
@@ -134,6 +148,23 @@ async function run(){
                 res.send({
                     success:false,
                     error:"Failed to delete"
+                })
+            }
+        })
+        app.patch('/myReviews/:id', async(req,res) =>{
+            const {id} = req.params; 
+            const query = {_id : ObjectId(id)}
+            const result = await reviewCollection.updateOne(query,{$set : req.body})
+
+            if(result.matchedCount){
+                res.send({
+                    success:true,
+                    message:"Updated the review"
+                })
+            }else{
+                res.send({
+                    success:false,
+                    error:"Failed to update"
                 })
             }
         })
