@@ -65,6 +65,28 @@ async function run(){
             })
         })
 
+        app.get('/reviews',async(req,res)=>{
+            const query = {serviceId: req.query.id}
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray()
+
+            res.send({
+                success:true,
+                data: result
+            })
+        })
+
+        app.get('/myReviews',async(req,res)=>{
+            const query = {email: req.query.email}
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray()
+
+            res.send({
+                success:true,
+                data: result
+            })
+        })
+
         
         app.post('/services', async(req,res)=>{
             const {name,details} = req.body;
@@ -103,7 +125,7 @@ async function run(){
             const token = jwt.sign(user, process.env.SECRETE_TOKEN);
             // console.log(token)
             res.send({
-                token:token
+                token:token 
             })
         })
     }catch(e){
