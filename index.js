@@ -18,20 +18,20 @@ console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-// async function jwtVerify(req,res,next){
-//     const token = req.header('authorization')
-//     if(!token){
-//         return res.status(401).send({message: 'Unathorized User'})
-//     }
-//     try{
-//         const user = jwt.verify(token,process.env.SECRETE_TOKEN)
-//         req.user = user;
-//         next()
-//     }
-//     catch{
-//         return res.status(403).send({message:"Invalid User"})
-//     }
-// }
+async function jwtVerify(req,res,next){
+    const token = req.header('authorization')
+    if(!token){
+        return res.status(401).send({message: 'Unathorized User'})
+    }
+    try{
+        const user = jwt.verify(token,process.env.SECRETE_TOKEN)
+        req.user = user;
+        next()
+    }
+    catch{
+        return res.status(403).send({message:"Invalid User"})
+    }
+}
 
 
 async function run(){
@@ -41,7 +41,7 @@ async function run(){
     try{
         app.get('/services', async(req,res)=>{
             const cursor = servicesCollection.find({})
-            const result = await cursor.toArray()
+            const result = await cursor.sort({datefield: -1}).toArray()
             res.send({
                 success:true,
                 data: result
@@ -49,7 +49,7 @@ async function run(){
         })
         app.get('/limitedServices', async(req,res)=>{
             const cursor = servicesCollection.find({})
-            const result = await cursor.limit(3).toArray()
+            const result = await cursor.limit(3).sort({datefield: -1}).toArray()
             res.send({
                 success:true,
                 data: result
@@ -90,7 +90,7 @@ async function run(){
             })
         })
 
-        app.get('/myReviews',async(req,res)=>{
+        app.get('/myReviews',jwtVerify,async(req,res)=>{
             const query = {email: req.query.email}
             const cursor = reviewCollection.find(query);
             const result = await cursor.toArray()
@@ -103,8 +103,8 @@ async function run(){
 
         
         app.post('/services', async(req,res)=>{
-            const {name,details} = req.body;
-            const result = await servicesCollection.insertOne({name,details})
+            const data = req.body;
+            const result = await servicesCollection.insertOne(data)
            if(result.insertedId){
             res.send({
                 success:true,
